@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  image-preprocessor:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: image-preprocessor-api
+    ports:
+      - "3000:3000"
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:3000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok-tunnel
+    command: 
+      - "http"
+      - "image-preprocessor:3000"
+    environment:
+      - NGROK_AUTHTOKEN=31B81lOcitORGjrkLslRfWJRGiS_5cS11ehDoAw9Cv4Xrs7kQ
+    ports:
+      - "4040:4040"  # ngrok web interface
+    depends_on:
+      - image-preprocessor
+    restart: unless-stopped
